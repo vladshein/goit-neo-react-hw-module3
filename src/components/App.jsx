@@ -1,58 +1,51 @@
 import { useState, useEffect } from "react";
-import Description from "./Description/Description";
-import Options from "./Options/Options";
-import Feedback from "./Feedback/Feedback";
-import Notifications from "./Notifications/Notifications";
+import SearchBar from "./SearchBar/SearchBar";
+import FormikForm from "./FormikForm/FormikForm";
+import ContactList from "./ContactList/ContactList";
+import initialList from "../initiallist.json";
+
+import css from "./App.module.css";
+import searchbar from "./SearchBar/SearchBar.module.css";
 
 const App = () => {
-  const [feedback, setFeedback] = useState(() => {
-    const savedFeedback = window.localStorage.getItem("feedback");
-
-    if (savedFeedback !== null) {
-      return JSON.parse(savedFeedback);
-    }
-
-    return { good: 0, neutral: 0, bad: 0 };
+  const [list, setList] = useState(() => {
+    const savedContacts = localStorage.getItem("contacts");
+    return savedContacts ? JSON.parse(savedContacts) : initialList;
   });
 
+  const [filter, setFilter] = useState("");
+
   useEffect(() => {
-    window.localStorage.setItem("feedback", JSON.stringify(feedback));
-  }, [feedback]);
+    localStorage.setItem("contacts", JSON.stringify(list));
+  }, [list]);
 
-  const updateFeedback = feedbackType => {
-    setFeedback(prevFeedback => ({
-      ...prevFeedback,
-      [feedbackType]: prevFeedback[feedbackType] + 1,
-    }));
-  };
-
-  const resetFeedback = () => {
-    setFeedback({
-      good: 0,
-      neutral: 0,
-      bad: 0,
+  const addContact = newContact => {
+    setList(prevList => {
+      return [...prevList, newContact];
     });
   };
 
-  let totalFeedback = feedback.good + feedback.neutral + feedback.bad;
-  let positive = Math.round((feedback.good / totalFeedback) * 100);
+  const deleteTask = contactId => {
+    setList(prevList => {
+      return prevList.filter(contact => contact.id !== contactId);
+    });
+  };
+
+  const visibleContacts = list.filter(contact =>
+    contact.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
   return (
-    <>
-      <Description />
-      <Options
-        state={feedback}
-        total={totalFeedback}
-        update={updateFeedback}
-        reset={resetFeedback}
+    <div className={css.app}>
+      <h1>Phonebook</h1>
+      <FormikForm onAdd={addContact} />
+      <SearchBar
+        className={searchbar.searchbar}
+        value={filter}
+        onFilter={setFilter}
       />
-      {totalFeedback ? (
-        <Feedback state={feedback} total={totalFeedback} positive={positive} />
-      ) : (
-        <Notifications />
-      )}
-      {console.log("In between")}
-    </>
+      <ContactList list={visibleContacts} onDelete={deleteTask} />
+    </div>
   );
 };
 
