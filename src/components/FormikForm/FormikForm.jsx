@@ -2,6 +2,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useId } from "react";
 import css from "./FormikForm.module.css";
 import * as Yup from "yup";
+import { useDispatch, useSelector } from "react-redux";
+import { addContact } from "../../redux/contactsSlice";
 
 const initialValues = {
   name: "",
@@ -18,19 +20,25 @@ const FeedbackSchema = Yup.object().shape({
     .required("Phone number is required"),
 });
 
-const FormikForm = ({ onAdd }) => {
+const FormikForm = () => {
   const nameFieldId = useId();
   const phoneFieldId = useId();
+  const dispatch = useDispatch();
 
   const handleSubmit = (values, actions) => {
-    console.log(values);
-    onAdd({
-      id: Date.now(),
-      name: values.name,
-      number: values.number,
-    });
+    dispatch(
+      addContact({
+        id: Date.now(),
+        name: values.name,
+        number: values.number,
+      })
+    );
+    console.log(value);
+
     actions.resetForm();
   };
+  const value = useSelector(state => state.contacts.items);
+  console.log(value);
 
   return (
     <Formik
